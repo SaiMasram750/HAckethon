@@ -1,57 +1,80 @@
-from fastapi import FastAPI, File, UploadFile, Header, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-import numpy as np
+# app.py
+
+from flask import Flask, request, jsonify
 import tensorflow as tf
+import numpy as np
 import os
-from preprocess import preprocess_csv
-from supabase_logger import log_prediction
+import csv
+from io import StringIO
 
+app = Flask(__name__)
 
-# Load model
-MODEL_PATH = "schizophrenia_detection_model.h5"
-model = tf.keras.models.load_model(MODEL_PATH)
+# Load the model once when the app starts
+try:
+    MODEL_PATH = "schizophrenia_detection_model.h5"
+    model = tf.keras.models.load_model(MODEL_PATH)
+except Exception as e:
+    print(f"Error loading model: {e}")
+    # Exit if model fails to load, preventing a startup crash
+    exit()
 
-# API key from environment
-API_KEY = os.getenv("API_KEY", "my-secret-key")
+# Preprocessing function (same as before)
+def preprocess_csv(contents):
+    # Your CSV preprocessing logic here
+    try:
+        csv_data = contents.decode('utf-8')
+        csv_file = StringIO(csv_data)
+        reader = csv.reader(csv_file)
+        rows = list(reader)[1:]
+        processed_data = [float(val) for row in rows for val in val] # Example: adjust as needed
+        return processed_data
+    except Exception as e:
+        raise ValueError(f"Error processing CSV: {e}")
 
-app = FastAPI()
+# Add the same logic for preprocess_edf if needed
+def preprocess_edf(contents):
+    raise NotImplementedError("EDF processing is not implemented.")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Replace with ["https://lovable.ai"] in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# The API endpoint
+@app.route('/predict', methods=['POST'])
+def predict():
+    # Authentication check
+    api_key = request.headers.get('X-Api-Key')
+    if api_key != os.getenv("API_KEY"):
+        return jsonify({"detail": "Invalid API Key"}), 403
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+    # Check for file in the request
+    if 'file' not in request.files:
+        return jsonify({"detail": "No file provided"}), 400
 
-@app.post("/predict")
-async def predict(file: UploadFile = File(...), x_api_key: str = Header(...)):
-    if x_api_key != API_KEY:
-        raise HTTPException(status_code=403, detail="Invalid API Key")
-
-    contents = await file.read()
+    file = request.files['file']
     filename = file.filename.lower()
 
     if filename.endswith(".csv"):
-        eeg_data = preprocess_csv(contents)
+        contents = file.read()
+        try:
+            eeg_data = preprocess_csv(contents)
+        except ValueError as e:
+            return jsonify({"detail": str(e)}), 400
     elif filename.endswith(".edf"):
-        eeg_data = preprocess_edf(contents)
+        # Handle EDF file
+        pass # Not implemented in this example
     else:
-        raise HTTPException(status_code=400, detail="Unsupported file type")
+        return jsonify({"detail": "Unsupported file type"}), 400
 
+    # Prediction logic
     eeg_array = np.array(eeg_data, dtype=float)[:252].reshape(1, 252, 1)
     y_pred = model.predict(eeg_array)
     predicted_class = int(np.argmax(y_pred))
     probabilities = y_pred.tolist()
 
-    log_prediction(filename, eeg_array.tolist(), predicted_class, probabilities)
-
-    return {
+    return jsonify({
         "filename": filename,
         "class": predicted_class,
         "probabilities": probabilities
-    }
+    })
+
+if __name__ == '__main__':
+    # Flask will be run by a production server like Gunicorn, not this block.
+    # This is for local testing only.
+    app.run(host='0.0.0.0', port=5000)
