@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+tensorflow
+numpy<1.24
+setuptools==65.5.0
+python-multipart
