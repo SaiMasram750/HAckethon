@@ -58,6 +58,12 @@ def require_api_key(f):
 model = None
 scaler = StandardScaler()
 MODEL_PATH = 'schizophrenia_detection_model.h5'  # Update this path
+try:
+    model = tf.keras.models.load_model(MODEL_PATH)
+    st.success("✅ Model loaded successfully")
+except Exception as e:
+    st.error(f"❌ Model failed to load: {e}")
+    model = None
 
 # Configuration for EEG processing
 EEG_CONFIG = {
@@ -1029,4 +1035,5 @@ if __name__ == '__main__':
     print("🌐 CORS enabled for cross-origin requests")
     print("🚀 Server starting on http://localhost:5000")
     app.run(host='0.0.0.0', port=5000, debug=True)
+
 
