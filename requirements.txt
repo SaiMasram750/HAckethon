@@ -1,6 +1,8 @@
-fastapi
-uvicorn
+lask
+flask-cors
 tensorflow
-numpy<1.24
-setuptools==65.5.0
-python-multipart
+numpy
+pandas
+scipy
+scikit-learn
+mne
