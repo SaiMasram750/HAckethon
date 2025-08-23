@@ -76,161 +76,294 @@ EEG_CONFIG = {
 # HTML template for schizophrenia detection
 HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Schizophrenia Detection - EEG Analysis</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
-        .upload-section { margin: 20px 0; padding: 20px; border: 2px dashed #3498db; border-radius: 10px; }
-        .file-input { margin: 10px 0; padding: 10px; }
-        label { font-weight: bold; color: #34495e; display: block; margin: 10px 0 5px 0; }
-        input[type="file"] { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; }
-        select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; }
-        button { background: #3498db; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #2980b9; }
-        .result { margin-top: 20px; padding: 20px; border-radius: 8px; }
-        .error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
-        .success { background: #e8f5e8; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .warning { background: #fff3e0; color: #f57c00; border: 1px solid #ffcc02; }
-        .info-section { background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .prediction-result { font-size: 18px; font-weight: bold; text-align: center; padding: 20px; }
-        .probability-bar { background: #ecf0f1; height: 20px; border-radius: 10px; margin: 10px 0; position: relative; }
-        .probability-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
-        .normal { background: #27ae60; }
-        .risk { background: #e74c3c; }
-        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; overflow-x: auto; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Schizophrenia Detection - EEG Analysis</title>
+  <style>
+    /* ===== Global Styling ===== */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #dfe9f3 0%, #ffffff 100%);
+      margin: 0;
+      padding: 0;
+      color: #2c3e50;
+    }
+
+    .container {
+      max-width: 950px;
+      margin: 40px auto;
+      padding: 30px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0px 8px 25px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: #34495e;
+      margin-bottom: 25px;
+      font-size: 2.2em;
+      letter-spacing: 0.5px;
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #2c3e50;
+      font-size: 1.2em;
+      border-left: 5px solid #3498db;
+      padding-left: 10px;
+    }
+
+    ul {
+      margin: 10px 0 0 20px;
+    }
+
+    /* ===== Sections ===== */
+    .info-section {
+      background: #f0f7ff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      border: 1px solid #d6e9ff;
+    }
+
+    .upload-section {
+      padding: 25px;
+      border: 2px dashed #3498db;
+      border-radius: 12px;
+      background: #f9fcff;
+      transition: all 0.3s ease;
+    }
+
+    .upload-section:hover {
+      background: #f0f7ff;
+    }
+
+    /* ===== Form Styling ===== */
+    label {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input[type="file"],
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #dcdcdc;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+
+    input[type="file"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0px 0px 6px rgba(52, 152, 219, 0.5);
+    }
+
+    button {
+      background: #3498db;
+      color: white;
+      padding: 12px 28px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: block;
+      margin: 0 auto;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0px 4px 12px rgba(41, 128, 185, 0.3);
+    }
+
+    /* ===== Result Section ===== */
+    .result {
+      margin-top: 25px;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 15px;
+      line-height: 1.6;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .error { background: #fdecea; color: #c0392b; border: 1px solid #f5c6cb; }
+    .success { background: #eafaf1; color: #27ae60; border: 1px solid #b7ebc6; }
+    .warning { background: #fff8e1; color: #e67e22; border: 1px solid #ffe0b2; }
+
+    .prediction-result {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .probability-bar {
+      background: #ecf0f1;
+      height: 20px;
+      border-radius: 12px;
+      margin: 15px 0;
+      overflow: hidden;
+    }
+
+    .probability-fill {
+      height: 100%;
+      border-radius: 12px;
+      transition: width 0.6s ease;
+    }
+
+    .normal { background: #27ae60; }
+    .risk { background: #e74c3c; }
+
+    pre {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+
+    /* ===== Animations ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🧠 Schizophrenia Detection System</h1>
-        
-        <div class="info-section">
-            <h3>📋 Instructions:</h3>
-            <ul>
-                <li><strong>EDF Files:</strong> Upload EEG recordings in European Data Format</li>
-                <li><strong>CSV Files:</strong> Upload preprocessed EEG features or raw signal data</li>
-                <li>Supported formats: .edf, .csv</li>
-                <li>The system analyzes EEG patterns associated with schizophrenia indicators</li>
-            </ul>
-        </div>
-        
-        <div class="upload-section">
-            <form id="uploadForm" enctype="multipart/form-data">
-                <div class="file-input">
-                    <label for="edfFile">EEG Data File (EDF/CSV):</label>
-                    <input type="file" id="fileInput" name="file" accept=".edf,.csv" required>
-                </div>
-                
-                <div class="file-input">
-                    <label for="analysisType">Analysis Type:</label>
-                    <select id="analysisType" name="analysis_type">
-                        <option value="full">Full Analysis (Recommended)</option>
-                        <option value="quick">Quick Screening</option>
-                        <option value="detailed">Detailed Report</option>
-                    </select>
-                </div>
-                
-                <button type="submit">🔬 Analyze EEG Data</button>
-            </form>
-        </div>
-        
-        <div id="result"></div>
-        
-        <div class="info-section">
-            <h3>🔬 API Endpoints:</h3>
-            <ul>
-                <li><strong>POST /analyze/edf</strong> - Analyze EDF file</li>
-                <li><strong>POST /analyze/csv</strong> - Analyze CSV file</li>
-                <li><strong>POST /predict</strong> - General prediction endpoint</li>
-                <li><strong>GET /model/info</strong> - Model information</li>
-                <li><strong>GET /health</strong> - System health check</li>
-            </ul>
-        </div>
+  <div class="container">
+    <h1>🧠 Schizophrenia Detection System</h1>
+    
+    <div class="info-section">
+      <h3>📋 Instructions:</h3>
+      <ul>
+        <li><strong>EDF Files:</strong> Upload EEG recordings in European Data Format</li>
+        <li><strong>CSV Files:</strong> Upload preprocessed EEG features or raw signal data</li>
+        <li>Supported formats: <code>.edf</code>, <code>.csv</code></li>
+        <li>The system analyzes EEG patterns associated with schizophrenia indicators</li>
+      </ul>
     </div>
-
-    <script>
-        document.getElementById('uploadForm').onsubmit = function(e) {
-            e.preventDefault();
-            
-            const fileInput = document.getElementById('fileInput');
-            const analysisType = document.getElementById('analysisType');
-            const resultDiv = document.getElementById('result');
-            
-            if (!fileInput.files[0]) {
-                resultDiv.innerHTML = '<div class="result error">❌ Please select a file first.</div>';
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-            formData.append('analysis_type', analysisType.value);
-            
-            const fileName = fileInput.files[0].name.toLowerCase();
-            let endpoint = '/predict';
-            
-            if (fileName.endsWith('.edf')) {
-                endpoint = '/analyze/edf';
-            } else if (fileName.endsWith('.csv')) {
-                endpoint = '/analyze/csv';
-            }
-            
-            resultDiv.innerHTML = '<div class="result">🔄 Processing EEG data... This may take a few moments.</div>';
-            
-            fetch(endpoint, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    resultDiv.innerHTML = '<div class="result error">❌ Error: ' + data.error + '</div>';
-                } else {
-                    displayResults(data);
-                }
-            })
-            .catch(error => {
-                resultDiv.innerHTML = '<div class="result error">❌ Analysis failed: ' + error.message + '</div>';
-            });
-        };
+    
+    <div class="upload-section">
+      <form id="uploadForm" enctype="multipart/form-data">
+        <label for="fileInput">EEG Data File (EDF/CSV):</label>
+        <input type="file" id="fileInput" name="file" accept=".edf,.csv" required>
         
-        function displayResults(data) {
-            const resultDiv = document.getElementById('result');
-            const probability = data.schizophrenia_probability || data.max_probability || 0;
-            const isRisk = probability > 0.5;
-            
-            let html = '<div class="result success">';
-            html += '<div class="prediction-result">';
-            html += isRisk ? '⚠ Elevated Risk Detected' : '✅ Normal Pattern';
-            html += '</div>';
-            
-            html += '<div class="probability-bar">';
-            html += '<div class="probability-fill ' + (isRisk ? 'risk' : 'normal') + '" style="width: ' + (probability * 100) + '%"></div>';
-            html += '</div>';
-            html += '<p style="text-align: center;">Probability: ' + (probability * 100).toFixed(1) + '%</p>';
-            
-            if (data.features) {
-                html += '<h4>📊 Extracted Features:</h4>';
-                html += '<ul>';
-                for (const [key, value] of Object.entries(data.features)) {
-                    html += '<li><strong>' + key + ':</strong> ' + (typeof value === 'number' ? value.toFixed(4) : value) + '</li>';
-                }
-                html += '</ul>';
-            }
-            
-            if (data.analysis_details) {
-                html += '<h4>🔍 Analysis Details:</h4>';
-                html += '<pre>' + JSON.stringify(data.analysis_details, null, 2) + '</pre>';
-            }
-            
-            html += '</div>';
-            resultDiv.innerHTML = html;
+        <label for="analysisType">Analysis Type:</label>
+        <select id="analysisType" name="analysis_type">
+          <option value="full">Full Analysis (Recommended)</option>
+          <option value="quick">Quick Screening</option>
+          <option value="detailed">Detailed Report</option>
+        </select>
+        
+        <button type="submit">🔬 Analyze EEG Data</button>
+      </form>
+    </div>
+    
+    <div id="result"></div>
+    
+    <div class="info-section">
+      <h3>🔬 API Endpoints:</h3>
+      <ul>
+        <li><strong>POST /analyze/edf</strong> - Analyze EDF file</li>
+        <li><strong>POST /analyze/csv</strong> - Analyze CSV file</li>
+        <li><strong>POST /predict</strong> - General prediction endpoint</li>
+        <li><strong>GET /model/info</strong> - Model information</li>
+        <li><strong>GET /health</strong> - System health check</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('uploadForm').onsubmit = function(e) {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('fileInput');
+      const analysisType = document.getElementById('analysisType');
+      const resultDiv = document.getElementById('result');
+
+      if (!fileInput.files[0]) {
+        resultDiv.innerHTML = '<div class="result error">❌ Please select a file first.</div>';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('analysis_type', analysisType.value);
+
+      const fileName = fileInput.files[0].name.toLowerCase();
+      let endpoint = '/predict';
+
+      if (fileName.endsWith('.edf')) {
+        endpoint = '/analyze/edf';
+      } else if (fileName.endsWith('.csv')) {
+        endpoint = '/analyze/csv';
+      }
+
+      resultDiv.innerHTML = '<div class="result">🔄 Processing EEG data... This may take a few moments.</div>';
+
+      fetch(endpoint, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          resultDiv.innerHTML = '<div class="result error">❌ Error: ' + data.error + '</div>';
+        } else {
+          displayResults(data);
         }
-    </script>
+      })
+      .catch(error => {
+        resultDiv.innerHTML = '<div class="result error">❌ Analysis failed: ' + error.message + '</div>';
+      });
+    };
+
+    function displayResults(data) {
+      const resultDiv = document.getElementById('result');
+      const probability = data.schizophrenia_probability || data.max_probability || 0;
+      const isRisk = probability > 0.5;
+
+      let html = '<div class="result success">';
+      html += '<div class="prediction-result">';
+      html += isRisk ? '⚠ Elevated Risk Detected' : '✅ Normal Pattern';
+      html += '</div>';
+
+      html += '<div class="probability-bar">';
+      html += '<div class="probability-fill ' + (isRisk ? 'risk' : 'normal') + '" style="width: ' + (probability * 100) + '%"></div>';
+      html += '</div>';
+      html += '<p style="text-align: center;">Probability: ' + (probability * 100).toFixed(1) + '%</p>';
+
+      if (data.features) {
+        html += '<h4>📊 Extracted Features:</h4><ul>';
+        for (const [key, value] of Object.entries(data.features)) {
+          html += '<li><strong>' + key + ':</strong> ' + (typeof value === 'number' ? value.toFixed(4) : value) + '</li>';
+        }
+        html += '</ul>';
+      }
+
+      if (data.analysis_details) {
+        html += '<h4>🔍 Analysis Details:</h4>';
+        html += '<pre>' + JSON.stringify(data.analysis_details, null, 2) + '</pre>';
+      }
+
+      html += '</div>';
+      resultDiv.innerHTML = html;
+    }
+  </script>
 </body>
 </html>
+
 """
 
 def load_model():
@@ -896,3 +1029,4 @@ if __name__ == '__main__':
     print("🌐 CORS enabled for cross-origin requests")
     print("🚀 Server starting on http://localhost:5000")
     app.run(host='0.0.0.0', port=5000, debug=True)
+
